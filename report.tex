@@ -38,7 +38,7 @@
 bli bla blub
 
 \section{Grundlagen}
-
+% stark kürzen
 \subsection{Cloud computing}
 Cloud computing wird vom \ac{NIST} als \cite[ein Modell zur Ermöglichung eines allgegenwärtigen, bequemen und bedarfsgerechten Netzzugang zu einem gemeinsamen Pool konfigurierbarer Rechenressourcen die schnell bereitgestellt und freigegeben werden können mit minimalem Verwaltungsaufwand oder Interaktion mit dem Dienstanbieter]{mell2011nist}.
 In dieser Definition gibt es 5 wesentliche Merkmale, 3 Service Modelle und 4 Bereitstellungsmethoden.
@@ -147,12 +147,15 @@ Der Vorteil des \emph{of-watchdog} im HTTP Modus ist, dass einmalige Initialisie
 \newline
 \newline
 Als zweites hat man einen \emph{Entrypoint}, welches die Anfragen vom \emph{of-watchdog} entgegennimmt. Im Java 11 Beispiel ist es ein sehr leichtgewichtiger HTTP Server, welches die Anfragen entgegennimmt und an den \emph{Handler} weiterreicht.
-Dieser Handler ist der Teil, der vom Anwendungsentwickler implementiert werden muss, wie im vorherigen Kapitel beschrieben.
+\newline
+Dieser Handler ist der dritte Teil, welcher vom Anwendungsentwickler implementiert werden muss, wie im vorherigen Kapitel beschrieben.
 \newline
 \newline
 Der letzte Teil ist die \emph{Package list}.
 Hier werden die Abhängigkeiten der Applikation definiert mithilfe des jeweiligen Packet Management System der Sprache.
 In diesen Fall Gradle für Java.
+
+\section{Wann sollte man FaaS verwenden}
 
 \newpage
 
@@ -174,3 +177,19 @@ In diesen Fall Gradle für Java.
 \bibliographystyle{abbrv}
 
 \end{document}
+
+% Wie ist die Architektur zwischen verschiedenen Funktionen
+
+% potentielle Ansätze
+% 	Vorteil von Cloud Anbietern/Cloud Kunde
+% 	was ist asynchrone schlecht
+% 	komplexizitätsgrenze von Programme zb durch Asynchronität
+	
+% Einleitung muss nicht entfernt werden, aber besser erklären bzgl cloud computing eigenschaften
+
+% Begrenzungen bei AWS:
+% 	bestimmte sprachen
+
+% Design Pattern für Serverless suchen
+
+% 15m präsentation 5-8slides
