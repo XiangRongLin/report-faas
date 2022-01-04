@@ -37,61 +37,49 @@
 \section{Einleitung}
 bli bla blub
 
-\section{Grundlagen}
-% stark kürzen
-\subsection{Cloud computing}
-Cloud computing wird vom \ac{NIST} als \cite[ein Modell zur Ermöglichung eines allgegenwärtigen, bequemen und bedarfsgerechten Netzzugang zu einem gemeinsamen Pool konfigurierbarer Rechenressourcen die schnell bereitgestellt und freigegeben werden können mit minimalem Verwaltungsaufwand oder Interaktion mit dem Dienstanbieter]{mell2011nist}.
-In dieser Definition gibt es 5 wesentliche Merkmale, 3 Service Modelle und 4 Bereitstellungsmethoden.
-
-\subsection{Merkmale}
-Eine kurze Zusammenfassung von \ac{NIST}\cite{mell2011nist}
-\subsubsection{On-demand self-service}
-Ein Benutzer kann sich selbstständig und automatisiert Ressourcen bereitstellen oder abbestellen ohne eine jegliche Interaktion mit einem Menschen. 
-
-\subsubsection{Broad network access}
-Diese Ressourcen sind über ein standardisiertes Interface erreichbar. Dies ist meist das Internet per HTTP.
-
-\subsubsection{Resource pooling}
-Der Anbieter dieser Ressourcen verfügt über einen Pool, welche entsprechend der Kundenwünsche zugewiesen werden. Dies passiert in Form von virtuellen Maschinen oder auch Containern.
-
-\subsubsection{Rapid elasticity}
-Ressourcen können sehr schnell hinzugefügt und auch wieder entfernt.
-
-\subsubsection{Measured service}
-Der Verbrauch von Ressourcen kann sehr genau abgerechnet werden, z.B. in Millisekundenbereich an verwendeter CPU Zeit.
-
-\subsection{Servicemodelle}
-In der initialen Definition aus 2011 wurden die 3 Modelle \ac{SaaS}, \ac{PaaS} und \ac{IaaS} beschrieben \cite{mell2011nist}. Inzwischen gibt es eine Vielzahl an Angeboten wie zum Beispiel \ac{BaaS} oder \ac{FaaS}. Es ist auch schon die Rede von \ac{XaaS}, also dass man alles als Service anbieten kann.
-\begin{figure}
-    \includegraphics[width=\textwidth, height=\textheight,keepaspectratio]{cloud_service_models.png}
-    \caption{Cloud service models}
-    \cite{serverless2017roewekamp}
-\end{figure}
-An obiger Grafik sieht man dass man von \ac{IaaS} über \ac{PaaS} hin zu \ac{SaaS} immer mehr direkt vom Anbieter bereit gestellt kriegt und immer weniger selbst managen muss.
-Die neuen Modelle stellen somit nur einen anderen Schnitt der Verantwortlichkeiten dar.
-
 \section{Was ist \ac{FaaS}?}
 \ac{FaaS} ist einer der neueren Aufteilungen der Verantwortlichkeiten zwischen einem selbst und dem Anbieter.
 In dieser neuen Form muss man selbst nur noch die Businesslogik implementieren und der Anbieter kümmert sich um den Betrieb in der Cloud.
 Genauer beschrieben hatte man zuvor drei unterschiedliche Aufgabenbereiche\cite{serverless2017roewekamp}:
-\begin{enumerate}
-    \item Ablaufsteuerung und lokale Logik
-    \item standardisierte Geschäftslogik
-    \item individuelle Geschäftslogik
-\end{enumerate}
-Von diesen übernimmt der Anbieter die ersten beiden, sodass man sich nur noch um die individuelle Geschäftslogik kümmern muss. 
+Ersteres ist die Ablaufsteuerung meist in Form eines UI Kontroller der die Aktionen des Users entgegennimmt und die weitere Geschäftslogik aufruft.
+Dies wird direkt vom Anbieter übernommen in Form von unterschiedlichen Triggern.
+Für die standardisierte Geschäftslogik gibt es bereits viele Anbieter, wie Auth0 für Authentifizierung und Authorisierung oder Phrase für die Verwaltung von lokalisierten Texten.
+Mit diesen hat man auch hier selbst keine direkten Entwickleraufwände.
 \newline
-Oft werden die Begriffe Serverless und \ac{FaaS} austauschbar verwendet was falsch ist.
-IBM beschreibt den wichtigen Unterschied, dass \ac{FaaS} ein Ausschnitt von Serverless ist\cite{faas2019ibm}.
-Wo man bei Serverless nur compute Ressourcen erhält, beinhaltet Serverless auch storage, database, messaging und vieles mehr.
+Zuletzt hat man dann noch die individuelle Geschäftslogik.
+Also die eigentliche Logik mit dem man den Nutzen für die eigenen Kunden schaffen will.
+Dieser Teil muss vom einem selbst implementiert werden.
+Als Beispiel kann nach dem Hochladen von Katalogdaten eines Herstellern in ein Amazon S3 Bucket ein Event versendet werden.
+Dieser startet den eigenen \ac{FaaS}, welcher den Katalog in das von den Händlern gewünschte Format konvertiert.
+Entweder selbst oder indirekt indem es einen Konvertierungsservice wie \emph{Lobster Data} mit entsprechenden Parametern triggert.
+\newline
+\subsection{Abgrenzungen}
+\ac{FaaS} teilt mit den anderen Servicemodellen wie \ac{PaaS}, \ac{BaaS} oder \ac{SaaS} viele Gemeinsamkeiten.
+So fängt es an bei \ac{PaaS}, dass man sich keine Gedanken mehr um die Laufzeitumgebung sowie die darunterliegenden Schichten machen muss.
+Also man muss keine Server physisch kaufen und aufbauen, diese nicht einrichten und warten, sowie eine Virtualisierungsumgebung bereitstellen mit der entsprechend benötigten Laufzeitumgebung.
+Unterschiede gibt es in der Ausprägung einiger Eigenschaften.
+Wo man bei Heroku \href{https://www.heroku.com/pricing}{pro Monat} abgerechnet wird, geschieht es bei AWS Lambda \href{https://aws.amazon.com/lambda/pricing/}{pro Millisekunde}.
+Dieser Unterschied kommt daher, dass \ac{FaaS} Instanzen sehr kurzlebig sind.
+Also sie verarbeiten eine \href{https://docs.aws.amazon.com/lambda/latest/dg/invocation-scaling.html}{einzige Anfrage} und werden dann nach einiger Zeit ohne weitere Anfragen wieder gestoppt, wohingegen der Service bei \ac{PaaS} durchgehen läuft.
+Diese kurzen Laufzeiten werden zusätzlich noch durch timeouts erzwungen.
+So darf bei \ac{GCP} eine Funktion maximal \href{https://cloud.google.com/functions/docs/concepts/exec?cloudshell=false#timeout}{9 Minuten} aktiv sein bevor sie beendet wird.
+\newline
+Die
+\newline
+In der nächsten Stufe \ac{BaaS} erhält man zusätzlich noch die automatische skalierung des Services, da der Anbieter nun das ganze Backend übernimmt und man selbst nur das Frontend entwickeln muss.
+Hiermit gehen auch Aufgabenbereiche des Serverbetriebs an den Anbieter über wie das Loadbalancing oder eine globale Verfügbarkeit.
+Dafür verliert man aber auch jegliche Möglichkeit selber individuelle Anpassungen zu machen, die der Anbieter nicht durch Konfiguration ermöglicht.
+In der letzten Stufe \ac{SaaS} wird der gesamt Service samt Frontend vom Anbieter übernommen.
+\newline
+In diese Lücke der fehlenden Anpassbarkeit kommt genau \ac{FaaS} ins Spiel.
+Es bietet eine sehr leichtgewichtige Lösung, da es einem die Anpassbarkeit wie bei \ac{PaaS} bietet, man aber wie bei \ac{BaaS} oder \ac{SaaS} den Overhead des Serverbetriebs nicht hat.
+\newline
+In diesem Kontext wird der Begriff Serverless sehr oft mit \ac{FaaS} austauschbar verwendet, was nicht ganz richtig ist.
+\ac{FaaS} ist ein Ausschnitt von Serverless, da es nur compute Ressourcen anbietet.
+Kombiniert mit anderen \ac{BaaS} wie Firebase für Datenbank oder Amazon Simple Queue Service für Messaging kann man erst richtig sagen dass man serverless arbeitet.
 
-\subsection{Serverless}
-Serverless bietet außerhalb von Berechnungskapazitäten unter anderem auch Speicher-, Datenbank- und Benachrichtigungsservices an. \footnote{https://www.ibm.com/cloud/learn/faas 27.11.21}
-FaaS ist somit nur ein Teil von Serverless, werden fälschlicherweise austauschbar verwendet.
-
-% \newpage
-
-\section{Wie verwendet man \ac{FaaS}?}
+\section{Wie funktioniert \ac{FaaS}?}
+\subsection{Grundlagen}
 Die Funktionsweise aus Sicht des Anwendungsentwicklers wird im \cite[Developer Guide von \ac{AWS}]{awsLambda_devGuide} sehr detailliert dargestellt.
 Grundlegend muss man selbst nur die Funktion implementieren und einen entsprechenden Trigger festlegen.
 
@@ -108,7 +96,7 @@ Im Java Beispiel implementiert man die Funktion indem man eines der unteren beid
     \caption{RequestStreamHandler.java}
     % https://github.com/aws/aws-lambda-java-libs/blob/master/aws-lambda-java-core/src/main/java/com/amazonaws/services/lambda/runtime/RequestStreamHandler.java
 \end{figure}
- 
+
 Der Eingabetyp muss ein primitive Datentyp, String, ein \ac{POJO}, eine Collection davon, ein Stream oder ein AWS spezifisches Event sein und wird per Konfiguration in einer `Event.json' definiert.
 Benötigt man zusätzlich noch Zugriff auf Datenbanken, Dateisystem oder andere Services bietet \ac{AWS} Lambda noch zusätzliche Bibliotheken für den Zugriff.
 \newline\newline
@@ -126,8 +114,8 @@ Die wichtigsten davon sind aber dass die Komponenten unabhängig voneinander ent
 
 % Vendor Lock In
 
-\section{Wie funktioniert FaaS intern?}
-Wie kann man aber selber \ac{FaaS} anbieten?
+\subsection{Interne Funktionsweise}
+Wie arbeitet aber ein \ac{FaaS} Anbieter, dass dieser den Codestück von oben zum laufen kriegen kann?
 \newline
 Hierfür kann man sich das Open Source Projekt \cite[OpenFaaS]{openfaas_github} genauer anschauen.
 Es verspricht eine viel weniger restriktive Lösung gegenüber den kommerziellen Lösungen von Amazon, Google und co.
@@ -137,7 +125,6 @@ Mit Kubernetes kommt auch die automatische skalierung, aber vor allem auch die U
 Vor allem hat man aber vollen Zugriff zum Source Code und kann anhand des \emph{Template Store}\cite{openfaas_templateStore} genau sehen wie ein \ac{FaaS} Provider implementiert ist.
 Die Templates bestehen aus 4 Teilen aus denen ein lauffähiges Docker Images erstellt wird, welche am Java 11 HTTP Beispiel \cite{openfaas_templateStore_java11} hier aufgeführt werden.
 \newline
-\newline
 Als erstes hat man das Dockerfile mit der die Applikation gebaut wird und anschließend in einer minimalen Laufzeitumgebung gestartet wird.
 \newline
 Dabei erhält die Applikation Anfragen nicht direkt sondern über den \emph{of-watchdog}\cite{openfaas_ofWatchdog}.
@@ -145,17 +132,107 @@ Dies ist ein HTTP Server von OpenFaaS, der als reverse proxy zum ausführen der 
 Es gibt verschiedene Operationsmodi die entweder dynamisch skaliert werden können über Systemprozesse und dann über STDIO kommunizieren oder in unseren Fall eine 1:1 Beziehung haben und über http auf dem localhost kommunizieren.
 Der Vorteil des \emph{of-watchdog} im HTTP Modus ist, dass einmalige Initialisierungen und langlebige Verbindungen wie eine Datenbank für die komplette Lebenszeit des Containers nur einmal Kosten verursachen und nicht für jede Anfrage.
 \newline
+Als zweites hat man einen \emph{Entrypoint}, welches die Anfragen vom \emph{of-watchdog} entgegennimmt. Im Java 11 Beispiel ist es ein sehr leichtgewichtiger HTTP Server, welches die Anfragen an den \emph{Handler} weiterreicht.
 \newline
-Als zweites hat man einen \emph{Entrypoint}, welches die Anfragen vom \emph{of-watchdog} entgegennimmt. Im Java 11 Beispiel ist es ein sehr leichtgewichtiger HTTP Server, welches die Anfragen entgegennimmt und an den \emph{Handler} weiterreicht.
-\newline
-Dieser Handler ist der dritte Teil, welcher vom Anwendungsentwickler implementiert werden muss, wie im vorherigen Kapitel beschrieben.
-\newline
+Dieser Handler ist der dritte Teil, welcher vom Anwendungsentwickler implementiert werden muss, wie zuvor beschrieben.
 \newline
 Der letzte Teil ist die \emph{Package list}.
 Hier werden die Abhängigkeiten der Applikation definiert mithilfe des jeweiligen Packet Management System der Sprache.
 In diesen Fall Gradle für Java.
+\newline
+Genutzt werden die Templates wenn man sich ein Vorlage generieren lässt mit dem CLI von openfaas.
+Mit \emph{faas-cli new --lang java11 <name>} erhält man ein Java/Gradle Projekt mit den obigen Teilen in Gradle als Abhängigkeiten definiert und einer leeren Handler Klasse.
+Also genau so wie es bei \ac{AWS} auch der Fall ist.
+\newline
+Insgesamt ist es also wie ein Microservice, wo einem aber viele Entscheidungen schon abgenommen wurden, sodass man sich nur auf die individuelle Businesslogik konzentrieren muss.
 
-\section{Wann sollte man FaaS verwenden}
+\section{Nachteile}
+\subsection{Asynchronität}
+Diese abgenommenen Entscheidung kommen aber mit ihren eigenen Einschränkungen.
+\newline
+Die größte davon ist keine direkte Einschränkung, sondern eine starke Empfehlung für \ac{FaaS} asynchrone Services zu verwenden und nicht synchrone.
+Gründe hierfür gibt es viele.
+Einer davon ist die Latenz von einem \emph{Cold Boot}, also wenn keine wartende Instanz bereit steht (\emph{Warm Boot}), sondern eine komplett neu erstellt werden muss.
+%https://aws.amazon.com/blogs/compute/operating-lambda-performance-optimization-part-1/
+Hier hat man neben der Zeit für die eigentliche Anfrage zusätzlich noch die Zeit zum Herunterladen und starten der Anwendung sowie das Verbinden zu eventuellen externen Services.
+Dies sollte nur bei unregelmäßigen Lastprofilen auftreten, wo es keine warten Instanz gibt, kann aber besonders bei performancekritischen Anwendungen fatal sein.
+\newline
+Desweiteren zahlt man bei synchronen Services mehr, falls man auf einen anderen Service warten muss.
+Einmal für den eigenen wartenden Service und einmal für den anderen Service auf den man wartet.
+Dies ist bei \ac{FaaS} schlimmer da die Preise höher sind.
+Wenn man die Preise pro Stunde für jeweils zwei GB RAM und einer virtuellen CPU für AWS Lambda und AWS EC2 On-Demand vergleicht, so hat man bei AWS Lambda einen fast fünffach höhere Kosten (0,11988\$/h vs 0,0255\$/h).
+% https://aws.amazon.com/lambda/pricing/
+% https://aws.amazon.com/ec2/pricing/on-demand/
+% https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-memory-console
+\subsection{Koreographie vs Orchestration}
+Mit der asynchronen Arbeitsweise kommen eine Reihe weiterer Einschränkungen.
+So sollte man statt der Orchestrierung der Services durch eine zentrale Stelle, diese selber agieren lassen basierend auf Events.
+Dies hängt teils mit oberen Punkt zusammen, da der orchestrierende Service durchgehend laufen muss, Anbieter aber wie zuvor erwähnt einen Timeout von wenigen Minuten haben (9 Minuten bei \ac{GCP}).
+So triggert ein zentraler Service nicht Service B nachdem Service A fertig ist, sondern Service A versendet ein Event, welches Service B empfängt und damit arbeitet.
+Dies bietet eine sehr loose Koppelung mit seinen Vorteilen der besseren Wartbarkeit und Austauschbarkeit.
+Aber hiermit kommt auch eine enorme Erhöhung der Komplexizität, da man eben nicht mehr diese zentrale Stelle hat um sich einen Überblick vom Gesamtprozess zu schaffen.
+Dazu gibt es auch viele neue Arten von Fehlern, wie Teilausfälle und nicht Erreichbarkeit
+
+\subsection{Begrentze Laufzeitumgebungen}
+Verwendet man nicht einer der populären Programmiersprachen in einer aktuellen Version, wird man bei manchen Anbietern auf Probleme stoßen.
+Wie man OpenFaaS gesehen hat sind Funktionen im Endeffekt Microservices für die der Anbieter ein Template erstellt hat.
+Gibt es kein Template in der gewünschten Sprache und Version hat man oft wenige Möglichkeiten außer diese zu wechseln.
+So bietet zum Beispiel \ac{GCP} nur Java 11 an und \ac{AWS} gar kein PHP.
+% https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html
+% https://cloud.google.com/functions/docs/writing/
+\ac{AWS} bietet dafür alternativ einen Möglichkeit an einen eigene Runtime zu entwickeln, ähnlich zu OpenFaaS.
+Dies bringt aber mit sich den ganzen Overhead, den man sich durch \ac{FaaS} eigentlich sparen will.
+
+\subsection{Komplett Stateless}
+Das ein Service selber keinen Zustand speichern soll ist nichts neues, sondern war schon beim Umstieg von Monolithen auf Microservices eines der großen Anpassungen die man machen musste.
+Bei Microservices hatte man aber trotzdem noch die Möglichkeit diese Empfehlung zu ignorieren, da man selbst die Kontrolle hatte über Start und Stopp.
+Mit \ac{FaaS} hat man nicht nur diese Möglichkeit nicht mehr, sondern hat auch effektiv keinen lokalen temporären Speicher mehr.
+Dieser kann sinnvoll als Cache eingesetzt werden wofür jetzt eine Alternative gefunden werden muss, außer man kann mit dem Performanceverlust leben.
+
+\subsection{Vendor Lock in}
+Die Gefahr, dass man sich bei der Implementierung zu sehr auf Anbieterspezifische Eigenschaften einlässt ist schon bei anderen Servicemodellen vorhanden, hier aber besonders groß.
+So stellt der Anbieter das Interface für die Funktion zu Verfügung und die entsprechenden Bibliotheken um sehr komfortabel mit weiteren System im Anbieterökosystem zu kommunizieren.
+Dieses Risiko kann aber umgangen werden, indem man die Anbieterspezifischen Details abstrahiert und somit der Kern der Businesslogik beliebig auf andere Portale übertragen werden kann und nur die Anbieterintegration angepasst werden muss.
+Ob dieser Aufwand auf gerechtfertigt ist, ist eine andere Frage.
+Ansonsten hat man auch schon bei OpenFaaS gesehen, dass es alternativen gibt mit Docker und Kubernetes.
+
+
+\section{Vorteile}
+Alle Eigenschaften von Cloud Computing, wie sie von \ac{NIST} beschrieben werden, treffen zu\cite{mell2011nist}.
+\subsection{On demand self service}
+Wie auch bei anderen Servicemodellen kann man selbstständig neue Funktionen hinzufügen um somit lange Wartezeiten zu vermeiden.
+Dies verbunden mit dem verringerten Overhead der Serverimplementation und Konfiguration bieten einem eine sehr schnellen Entwicklungszyklus und somit eine viel kürzere Zeit um Produkte auf dem Markt zu bringen und Ihre Werthaltigkeit auszutesten.
+\newline
+\subsection{Broad network access}
+Für die Interaktion mit andere Services innerhalb des Ökosystems des Anbieters gibt es auch Bibliotheken und zahlreiche Ressourcen.
+Für Unternehmen die sich nicht vor dem \emph{Vendor Lock In}, bietet dies eine enorme Zeitersparnis.
+Ansonsten kann man mit den Funktionen über standardisierte HTTP Schnittstellen oder Events kommunizieren.
+\newline
+\subsection{Rapid Elasticity}
+Gegenüber anderen Modellen ist die Skalierung bei \ac{FaaS} schon direkt mitinbegriffen mit sogar der Möglichkeit auf null Instanzen herunterzuskalieren.
+Hierbei kann es noch rapider geschehen durch die leichtegewichtigkeit der Service und der Optimierung hierfür.
+\newline
+\subsection{Measured Services}
+Die verwendeten Resourcen werden viel feingranularer abgerechnet.
+Vergleicht man AWS Lambda mit AWS EC2 On-Demand, so wird einerseits in Millisekunden statt Sekunden abgerechnet.
+Andererseits kann man bereits mit einer Instanz mit nur 128MB RAM und umgerechnet circa \(\frac{1}{14}\) einer virtuellen CPU starten, statt mit 500MB RAM und einer ganzen virtuellen CPU.
+Also ein rießiger finanzieller Vorteil für Services mit unregelmäßigen oder sehr geringen Lastprofilen oder zum initialen austesten von Prototypen.
+\newline
+\subsection{Resource Pooling}
+Die benötige Hardware für die Maximalkapazität braucht man selber auch nicht bereitstellen.
+Dies wird komplett von Anbieter übernommen, welche diese Maximalkapazität für alle Kunden bereitstellen muss.
+Auch der Anbieter kann einen Vorteil hierraus ziehen durch den Skaleneffekt.
+Durch die Masse an benötigter Hardware kann er individuelle Vereinbarung mit Herstellern treffen und auch den physikalischen Standort günstig wählen um von kühleren Klima oder günstigen Strom zu profitieren.
+
+
+
+%On-demand self-service}
+%Broad network access}
+%Resource pooling}
+%Rapid elasticity}
+%Measured service}
+
+
 
 \newpage
 
@@ -170,6 +247,8 @@ In diesen Fall Gradle für Java.
  \acro{XaaS}{Anything as a Service}
  \acro{POJO}{plain old Java object}
  \acro{AWS}{Amazon Web Services}
+ \acro{CLI}{Command Line Tool}
+ \acro{GCP}{Google Cloud Plattform}
 \end{acronym}
 \newpage
 
@@ -184,7 +263,7 @@ In diesen Fall Gradle für Java.
 % 	Vorteil von Cloud Anbietern/Cloud Kunde
 % 	was ist asynchrone schlecht
 % 	komplexizitätsgrenze von Programme zb durch Asynchronität
-	
+
 % Einleitung muss nicht entfernt werden, aber besser erklären bzgl cloud computing eigenschaften
 
 % Begrenzungen bei AWS:
