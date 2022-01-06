@@ -47,7 +47,7 @@ Mit diesen hat man auch hier selber keine direkten Entwickleraufwände.
 \newline
 Zuletzt hat man dann noch die individuelle Geschäftslogik.
 Also die eigentliche Logik mit dem man den Nutzen für die eigenen Kunden schaffen will.
-Dieser Teil muss vom einem selber implementiert werden.
+Dieser Teil muss von einem selber implementiert werden.
 Als Beispiel kann nach dem Hochladen von Katalogdaten eines Herstellern in ein Amazon S3 Bucket ein Event versendet werden.
 Dieser startet den eigenen \ac{FaaS}, welcher den Katalog in das von den Händlern gewünschte Format konvertiert.
 Entweder selber oder indirekt indem es einen Konvertierungsservice wie Lobster Data\footnote{https://www.lobster-world.com/en/lobster-data/} mit entsprechenden Parametern triggert.
@@ -101,7 +101,7 @@ Benötigt man zusätzlich noch Zugriff auf Datenbanken, Dateisystem oder andere 
 \newline\newline
 Als Trigger kann man HTTP Anfragen, Queue Nachrichten, Streams oder andere \ac{AWS} Services verwendet werden.
 Tritt nun eines dieser Ereignisse ein, so wird der Handler aufgerufen.
-Dies kann synchron ablaufen in welchen Fall das Ereignis direkt vom Client an den Handler weitergegeben wird.
+Dies kann synchron ablaufen in welchem Fall das Ereignis direkt vom Client an den Handler weitergegeben wird.
 Dies wird beispielsweise bei HTTP Anfragen oft benötigt, da der Benutzer am anderen Ende aktiv auf die Antwort wartet.
 \newline
 Die bevorzugte Arbeitsweise ist aber asynchron.
@@ -118,7 +118,7 @@ Wie arbeitet aber ein \ac{FaaS} Anbieter, dass dieser den Codestück von oben zu
 Hierfür kann man sich das Open Source Projekt \cite[OpenFaaS]{openfaas_github} genauer anschauen.
 Es verspricht eine viel weniger restriktive Lösung gegenüber den kommerziellen Lösungen von Amazon, Google und co.
 Kubernetes wird als Grundtechnologie verwendet, was einem erlaubt jegliche Anwendung zu verwenden, die in einem Container laufen kann.
-Mit Kubernetes kommt auch die automatische skalierung, aber vor allem auch die Unabhängigkeit von Cloud Anbieter, da Kubernetes verglichen mit \ac{FaaS} ein viel älteres und somit standardisierteres Modell ist.
+Mit Kubernetes kommt auch die automatische Skalierung, aber vor allem auch die Unabhängigkeit von Cloud Anbieter, da Kubernetes verglichen mit \ac{FaaS} ein viel älteres und somit stärker standardisiertes Modell ist.
 \newline
 Vor allem hat man aber vollen Zugriff zum Source Code und kann anhand des \emph{Template Store}\cite{openfaas_templateStore} genau sehen wie ein \ac{FaaS} Provider implementiert ist.
 Die Templates bestehen aus 4 Teilen aus denen ein lauffähiges Docker Images erstellt wird, welche am Java 11 HTTP Beispiel \cite{openfaas_templateStore_java11} hier aufgeführt werden.
@@ -135,8 +135,8 @@ Als zweites hat man einen \emph{Entrypoint}, welches die Anfragen vom \emph{of-w
 Dieser Handler ist der dritte Teil, welcher vom Anwendungsentwickler implementiert werden muss, wie zuvor beschrieben.
 \newline
 Der letzte Teil ist die \emph{Package list}.
-Hier werden die Abhängigkeiten der Applikation definiert mithilfe des jeweiligen Packet Management System der Sprache.
-In diesen Fall Gradle für Java.
+Hier werden die Abhängigkeiten der Applikation definiert mithilfe des jeweiligen Paketmanagement System der Sprache.
+In diesem Fall Gradle für Java.
 \newline
 Genutzt werden die Templates wenn man sich ein Vorlage generieren lässt mit dem CLI von OpenFaaS.
 Mit "faas-cli new --lang java11 <name>" erhält man ein Java/Gradle Projekt mit den obigen Teilen in Gradle als Abhängigkeiten definiert und einer leeren Handler Klasse.
@@ -146,10 +146,10 @@ Insgesamt ist es also wie ein Microservice, wo einem aber viele Entscheidungen s
 
 \section{Einschränkungen}
 \subsection{Latenz}
-Wie man zuvor gesehen hat, ist die Funktion im Endeffekt auch auch Microservice, aber auf das extreme minimiert.
+Wie man zuvor gesehen hat, ist die Funktion im Endeffekt auch Microservice, aber auf das extreme minimiert.
 Hier muss also zum bearbeiten einer weiteren Anfrage, eine neuen Instanz und somit ein komplett neuer Service hochgefahren werden, statt wie in einem üblichen Servermodell, nur einen weiteren Thread zu starten.
 \newline
-Dieser Overhead muss entsprechend gezahlt werden.
+Dieser Overhead muss entsprechend bezahlt werden.
 Bei AWS wird es erfreulicherweise von AWS selbst übernommen, da man selber nur für die Zeit zahlt in der der Code ausgeführt wird \cite{aws_lambda_pricing}, was also nicht die Zeit zum Hochfahren beinhaltet.
 Dieser Fall ist der worst case und wird als \emph{Cold Boot} bezeichnet.
 Im besten Fall gibt es bereits eine Instanz, die nur inaktiv ist, womit man somit den ganzen Overhead durch das starten vermeidet.
@@ -160,7 +160,7 @@ Muss die Latenz konsistent gering sein, so kann man bei AWS mit \emph{Provisione
 Dies ist aber mit extra Kosten verbunden und macht den Kostenvorteil der Skalierung nach unten zu Nichte.
 
 \subsection{Memory overhead}
-Ein weiterer Nachteil dadurch dass es effektiv Microservices sind, ist der Speicherverbrauch.
+Ein weiterer Nachteil dadurch, dass es effektiv Microservices sind, ist der Speicherverbrauch.
 In der Java Welt ist es allseits bekannt, dass die \ac{JVM} sehr viel Arbeitsspeicher benötigt.
 Dies ist hier sehr ausschlaggebend, wo jede Anfrage seine eigene Instanz der Funktion hat mit seiner eigenen \ac{JVM}.
 Eine simple Funktion, welche nur mit "Hello World" antwortet, benötigt bei OpenFaaS während der Inaktivität mit Java 11 50MB Arbeitsspeicher, wohingegen GO, welches zu nativen Maschinen Code kompiliert, nur 5MB Arbeitsspeicher benötigt.
@@ -170,10 +170,10 @@ Nichts desto trotz zahlt man selbst für diese extra 45MB Arbeitsspeicher währe
 
 \subsection{Tests}
 Tests sind ein wichtiger Bestandteil fast aller gut wartbarer Software.
-Vor allem dass man sie auch jederzeit lokal und aus der Build Umgebung ausführen kann.
+Vor allem, dass man sie auch jederzeit lokal und aus der Build Umgebung ausführen kann.
 Unit Tests lassen sich relativ einfach umsetzen mit etwas Aufwand bei der Abstraktion der Interfaces des Anbieters.
 \newline
-Integrationstests hingegen sind da etwas schwerer bei kommerziellen Anbietern, da man selber nur den Handler implementiert und alles außen herum vom Anbieter bereit gestellt wird.
+Integrationstests hingegen sind da etwas schwerer bei kommerziellen Anbietern, da man selber nur den Handler implementiert und alles außen herum vom Anbieter bereitgestellt wird.
 Vor allem also die Konvertierung der HTTP Anfrage in das vom Handler gewünschte Datenformat und das Aufrufen davon mit dem korrekten Kontext.
 Hierfür haben die verschiedenen Anbieter aber Emulatoren bereit gestellt.
 Im Beispiel von AWS, ist es ein leichtgewichtiger Webserver, welche die HTTP Anfragen in JSON Events umwandelt\cite{aws_lambda_rie}.
@@ -181,7 +181,7 @@ Dieser umfasst aber nicht die Orchestrierung, Security und Authentifizierung, we
 \newline
 Will man in einer Umgebung testen, die der Produktion gleich ist, so bleibt einem nur übrig direkt gegen den Anbieter zu testen.
 Dies birgt viele Schwierigkeiten, da man eventuell eigene Microservices lokal laufen hat, die Funktion aber beim Anbieter läuft und sich mit der lokalen Instanz verbinden muss.
-Des Weiteren bezahlt man nun jedes mal wenn ein Tests durchläuft.
+Des Weiteren bezahlt man nun jedes Mal wenn ein Tests durchläuft.
 \newline
 Dies ist allgemein aber kein neues Problem, sondern schon bei \ac{BaaS} und \ac{SaaS} der Fall, von wo man sich auch Lösungsansätze abschauen kann.
 
@@ -212,12 +212,12 @@ So bietet zum Beispiel \ac{GCP} Java nur in der Version 11 an \cite{gcp_function
 Dies bringt aber mit sich den Entwicklungsoverhead, den man sich durch \ac{FaaS} eigentlich sparen will.
 
 \subsection{Komplett Zustandslos}
-Das ein Service selber keinen Zustand speichern soll ist nichts neues, sondern war schon beim Umstieg von Monolithen auf Microservices, eines der großen Anpassungen, die man machen sollte.
+Dass ein Service selber keinen Zustand speichern soll ist nichts Neues, sondern war schon beim Umstieg von Monolithen auf Microservices, eines der großen Anpassungen, die man machen sollte.
 Bei Microservices hatte man aber trotzdem noch die Möglichkeit diese Empfehlung zu ignorieren, da man selber die Kontrolle hatte über den Start und Stopp des Service.
 Mit \ac{FaaS} hat man nicht nur diese Möglichkeit nicht mehr, sondern hat auch effektiv keinen lokalen temporären Speicher mehr, der als Cache verwendet werden kann.
 
 \subsection{Vendor Lock in}
-Die Gefahr, dass man sich bei der Implementierung zu sehr auf Anbieterspezifische Eigenschaften einlässt ist schon bei anderen Servicemodellen vorhanden, hier aber besonders groß.
+Die Gefahr, dass man sich bei der Implementierung zu sehr auf anbieterspezifische Eigenschaften einlässt ist schon bei anderen Servicemodellen vorhanden, hier aber besonders groß.
 So stellt der Anbieter das Interface für die Funktion und die entsprechenden Bibliotheken zur Verfügung, um sehr komfortabel mit weiteren System im Ökosystem des Anbieters zu kommunizieren.
 Dieses Risiko kann aber umgangen werden, indem man die Anbieterspezifischen Details abstrahiert und somit der Kern der Businesslogik beliebig auf andere Portale übertragen werden kann und nur die Integration an den Anbieter anpassen muss.
 Ob dieser Aufwand auf gerechtfertigt ist, ist eine andere Frage.
@@ -253,8 +253,8 @@ Durch die Masse an benötigter Hardware kann er individuelle Vereinbarung mit He
 \section{Fazit}
 Insgesamt ist Function as a Service also nur ein weiteres Servicemodell wie die anderen auch mit seinen eigenen Vorteilen auf Kosten gewisser Einschränkungen.
 Diese muss man je Situation gegeneinander abwägen und selber eine Entscheidung treffen ob \ac{FaaS} das richtige Mittel zum Zweck ist.
-Allgemein ist es besser geeignet für kurze Aufgabe, welche sich asynchron abarbeiten lassen und einen unregelmäßiges Lastprofil haben um von der automatischen Skalierung profitieren zu können.
-Es steht einen aber offen mit \ac{FaaS} zu experimentieren, da man nur ein sehr geringes finanzielles Startkapitel benötigt, durch die feingranulare Abrechnung und der extrem niedrigen Funktionsgrößen.
+Allgemein ist es besser geeignet für kurze Aufgaben, welche sich asynchron abarbeiten lassen und einen unregelmäßiges Lastprofil haben um von der automatischen Skalierung profitieren zu können.
+Es steht einen aber offen mit \ac{FaaS} zu experimentieren, da man nur ein sehr geringes finanzielles Startkapital benötigt, durch die feingranulare Abrechnung und der extrem niedrigen Funktionsgrößen.
 
 \newpage
 
