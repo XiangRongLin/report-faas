@@ -11,8 +11,8 @@
 \graphicspath{{images/}}
 
 % don't allow to split words over separate lines
-\hyphenpenalty 10000
-\exhyphenpenalty 10000
+% \hyphenpenalty 10000
+% \exhyphenpenalty 10000
 \raggedright
 
 \renewcommand{\figurename}{Figur}
@@ -21,7 +21,7 @@
 
 \title{Function as a Service}
 \author{Xiang Rong Lin}
-\date{27.11.2021}
+\date{06.01.2022}
 
 \begin{document}
 
@@ -138,83 +138,88 @@ Der letzte Teil ist die \emph{Package list}.
 Hier werden die Abhängigkeiten der Applikation definiert mithilfe des jeweiligen Packet Management System der Sprache.
 In diesen Fall Gradle für Java.
 \newline
-Genutzt werden die Templates wenn man sich ein Vorlage generieren lässt mit dem CLI von openfaas.
-Mit \emph{faas-cli new --lang java11 <name>} erhält man ein Java/Gradle Projekt mit den obigen Teilen in Gradle als Abhängigkeiten definiert und einer leeren Handler Klasse.
-Also genau so wie es bei \ac{AWS} auch der Fall ist.
+Genutzt werden die Templates wenn man sich ein Vorlage generieren lässt mit dem CLI von OpenFaaS.
+Mit "faas-cli new --lang java11 <name>" erhält man ein Java/Gradle Projekt mit den obigen Teilen in Gradle als Abhängigkeiten definiert und einer leeren Handler Klasse.
+Also genau so wie es bei  auch der Fall ist.
 \newline
 Insgesamt ist es also wie ein Microservice, wo einem aber viele Entscheidungen schon abgenommen wurden, sodass man sich nur auf die individuelle Businesslogik konzentrieren muss.
 
-\section{Nachteile}
-Diese abgenommenen Entscheidung kommen aber mit ihren eigenen Einschränkungen.
+\section{Einschränkungen}
 \subsection{Latenz}
-Wie man zuvor gesehen hat, ist die Funktion im Endeffekt auch auch Microservice, aber auf das extreme getrieben.
-Hier muss also zum bearbeiten einer weiteren Anfrage eine neuen Instanz und somit ein komplett Service hochgefahren werden, statt wie in einem üblichen Server nur einen weiteren Thread zu starten.
+Wie man zuvor gesehen hat, ist die Funktion im Endeffekt auch auch Microservice, aber auf das extreme minimiert.
+Hier muss also zum bearbeiten einer weiteren Anfrage, eine neuen Instanz und somit ein komplett neuer Service hochgefahren werden, statt wie in einem üblichen Servermodell, nur einen weiteren Thread zu starten.
 \newline
 Dieser Overhead muss entsprechend gezahlt werden.
-Bei AWS wird es erfreulicherweise von AWS selbst übernommen, da man selber nur für die Zeit zahlt in der der Code ausgeführt wird \cite{aws_lambda_pricing}.
+Bei AWS wird es erfreulicherweise von AWS selbst übernommen, da man selber nur für die Zeit zahlt in der der Code ausgeführt wird \cite{aws_lambda_pricing}, was also nicht die Zeit zum Hochfahren beinhaltet.
 Dieser Fall ist der worst case und wird als \emph{Cold Boot} bezeichnet.
-Im besten Fall gibt es bereits eine Instanz, die nur inaktiv ist womit man somit den ganzen Overhead durch das starten vermeidet.
-Diese Kosten übernimmt man auch nicht, dafür hat aber AWS selbst die Kontrolle wie lange eine Instanz inaktiv bleiben darf, bevor sie beendet wird.
+Im besten Fall gibt es bereits eine Instanz, die nur inaktiv ist, womit man somit den ganzen Overhead durch das starten vermeidet.
+Die Kosten der inaktiven Instanz übernimmt man auch nicht, dafür hat aber AWS selbst die Kontrolle wie lange eine Instanz inaktiv bleiben darf, bevor sie beendet wird.
 Benchmarks von 2019 zufolge kann dies bis zu einer Stunde sein \cite{aws_lambda_idle_timeout}, was aber nur Funktionen mit kleineren Speicherbedarf erreichen.
 \newline
-Ist die Latenz kritisch, kann man bei AWS mit \emph{Provisioned Concurrency} Sicherstellen, dass eine Mindestanzahl an Funktionen immer initialisiert sind\cite{aws_lambda_provisioned_concurrency}.
-Dies ist aber mit extra Kosten verbunden und macht den Vorteil der Skalierung nach unten zu Nichte.
+Muss die Latenz konsistent gering sein, so kann man bei AWS mit \emph{Provisioned Concurrency} sicherstellen, dass eine Mindestanzahl an Funktionen immer initialisiert sind\cite{aws_lambda_provisioned_concurrency}.
+Dies ist aber mit extra Kosten verbunden und macht den Kostenvorteil der Skalierung nach unten zu Nichte.
 
 \subsection{Memory overhead}
-Ein weiterer Nachteil dadurch dass es Effektiv Microservices sind, ist der Speicherverbrauch.
+Ein weiterer Nachteil dadurch dass es effektiv Microservices sind, ist der Speicherverbrauch.
 In der Java Welt ist es allseits bekannt, dass die \ac{JVM} sehr viel Arbeitsspeicher benötigt.
 Dies ist hier sehr ausschlaggebend, wo jede Anfrage seine eigene Instanz der Funktion hat mit seiner eigenen \ac{JVM}.
-Eine simple Funktion, welche nur mit Hello Word antwortet, benötigt bei OpenFaaS während der Inaktivität mit Java 11 50MB Arbeitsspeicher, wohingegen GO, welches zu nativen Maschinen Code kompiliert, nur 5MB Arbeitsspeicher benötigt.
+Eine simple Funktion, welche nur mit "Hello World" antwortet, benötigt bei OpenFaaS während der Inaktivität mit Java 11 50MB Arbeitsspeicher, wohingegen GO, welches zu nativen Maschinen Code kompiliert, nur 5MB Arbeitsspeicher benötigt.
 \newline
 Dieser Overhead der JVM zeigt sich höchstwahrscheinlich auch im CPU Verbrauch bei der Initialisierung, was aber nicht überprüft wurde.
-Nichts desto trotz zahlt man selbst für diese extra 45MB und der Anbieter für die Zeit während es Inaktiv ist.
+Nichts desto trotz zahlt man selbst für diese extra 45MB Arbeitsspeicher während der Ausführung und der Anbieter während der Inaktivität.
 
-\subsection{Integrationstest}
-TODO
-nicht wirklich Nachteil
-AWS, GCP, Azure bieten emulatoren oder ähnliches an
+\subsection{Tests}
+Tests sind ein wichtiger Bestandteil fast aller gut wartbarer Software.
+Vor allem dass man sie auch jederzeit lokal und aus der Build Umgebung ausführen kann.
+Unit Tests lassen sich relativ einfach umsetzen mit etwas Aufwand bei der Abstraktion der Interfaces des Anbieters.
+\newline
+Integrationstests hingegen sind da etwas schwerer bei kommerziellen Anbietern, da man selber nur den Handler implementiert und alles außen herum vom Anbieter bereit gestellt wird.
+Vor allem also die Konvertierung der HTTP Anfrage in das vom Handler gewünschte Datenformat und das Aufrufen davon mit dem korrekten Kontext.
+Hierfür haben die verschiedenen Anbieter aber Emulatoren bereit gestellt.
+Im Beispiel von AWS, ist es ein leichtgewichtiger Webserver, welche die HTTP Anfragen in JSON Events umwandelt\cite{aws_lambda_rie}.
+Dieser umfasst aber nicht die Orchestrierung, Security und Authentifizierung, welche aber teilweise aus dem Arbeitsbereich der Integrationstests hinausfällt.
+\newline
+Will man in einer Umgebung testen, die der Produktion gleich ist, so bleibt einem nur übrig direkt gegen den Anbieter zu testen.
+Dies birgt viele Schwierigkeiten, da man eventuell eigene Microservices lokal laufen hat, die Funktion aber beim Anbieter läuft und sich mit der lokalen Instanz verbinden muss.
+Des Weiteren bezahlt man nun jedes mal wenn ein Tests durchläuft.
+\newline
+Dies ist allgemein aber kein neues Problem, sondern schon bei \ac{BaaS} und \ac{SaaS} der Fall, von wo man sich auch Lösungsansätze abschauen kann.
 
 \subsection{Asynchronität}
-Die größte davon ist keine direkte Einschränkung, sondern eine starke Empfehlung für \ac{FaaS} asynchrone Services zu verwenden und nicht synchrone.
-Gründe hierfür gibt es viele.
-Einer davon ist die Latenz von einem \emph{Cold Boot}, also wenn keine wartende Instanz bereit steht (\emph{Warm Boot}), sondern eine komplett neu erstellt werden muss.
-%https://aws.amazon.com/blogs/compute/operating-lambda-performance-optimization-part-1/
-Hier hat man neben der Zeit für die eigentliche Anfrage zusätzlich noch die Zeit zum Herunterladen und starten der Anwendung sowie das Verbinden zu eventuellen externen Services.
-Dies sollte nur bei unregelmäßigen Lastprofilen auftreten, wo es keine warten Instanz gibt, kann aber besonders bei performancekritischen Anwendungen fatal sein.
-\newline
-Desweiteren zahlt man bei synchronen Services mehr, falls man auf einen anderen Service warten muss.
-Einmal für den eigenen wartenden Service und einmal für den anderen Service auf den man wartet.
-Dies ist bei \ac{FaaS} schlimmer da die Preise höher sind.
-Wenn man die Preise pro Stunde für jeweils zwei GB RAM und einer virtuellen CPU für AWS Lambda und AWS EC2 On-Demand vergleicht, so hat man bei AWS Lambda einen fast fünffach höhere Kosten (0,11988\$/h vs 0,0255\$/h).
-% https://aws.amazon.com/lambda/pricing/
-% https://aws.amazon.com/ec2/pricing/on-demand/
-% https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-memory-console
+Es wird empfohlen \ac{FaaS} für asynchrone statt synchrone Services zu verwenden.
+Ein Grund hierfür ist die zuvor erwähnte Latenz von einem \emph{Cold Boot}, also wenn eine Instanz komplett neu hochgefahren werden muss.
+Verbunden damit dass man oft weitere Funktionen/Services aufrufen muss, wartet und bezahlt man somit diese Latenz.
+Diese Kosten können sehr schnell sehr hoch werden, da die Preise bei \ac{FaaS} höher sind, aber durch die Skalierung nach unten man trotzdem insgesamt weniger zahlt.
+Wenn man die Preise pro Stunde für jeweils zwei GB RAM und einer virtuellen CPU für AWS Lambda und AWS EC2 On-Demand vergleicht, so hat man bei AWS Lambda einen fast fünffach höhere Kosten (0,11988\$/h vs 0,0255\$/h)\cite{aws_lambda_pricing}\cite{aws_ec2_pricing}\cite{aws_lambda_memory_cpu}.
+
 \subsection{Koreographie vs Orchestration}
 Mit der asynchronen Arbeitsweise kommen eine Reihe weiterer Einschränkungen.
 So sollte man statt der Orchestrierung der Services durch eine zentrale Stelle, diese selber agieren lassen basierend auf Events.
-Dies hängt teils mit oberen Punkt zusammen, da der orchestrierende Service durchgehend laufen muss, Anbieter aber wie zuvor erwähnt einen Timeout von wenigen Minuten haben (9 Minuten bei \ac{GCP}).
+Dies hängt teils mit oberen Punkt zusammen, da der orchestrierende Service durchgehend laufen muss, Anbieter aber einen Timeout von wenigen Minuten haben (9 Minuten bei \ac{GCP}\cite{gcp_function_timeout}).
 So triggert ein zentraler Service nicht Service B nachdem Service A fertig ist, sondern Service A versendet ein Event, welches Service B empfängt und damit arbeitet.
-Dies bietet eine sehr loose Koppelung mit seinen Vorteilen der besseren Wartbarkeit und Austauschbarkeit.
-Aber hiermit kommt auch eine enorme Erhöhung der Komplexizität, da man eben nicht mehr diese zentrale Stelle hat um sich einen Überblick vom Gesamtprozess zu schaffen.
-Dazu gibt es auch viele neue Arten von Fehlern, wie Teilausfälle und nicht Erreichbarkeit
-\subsection{Begrentze Laufzeitumgebungen}
+Dies bietet eine sehr lose Koppelung mit seinen Vorteilen wie der besseren Wartbarkeit und Austauschbarkeit.
+Aber hiermit kommt auch eine enorme Erhöhung der Komplexität, da man eben nicht mehr diese zentrale Stelle hat um sich einen Überblick vom Gesamtprozess zu schaffen.
+Dazu gibt es auch viele neue Arten von Fehlern, wie Teilausfälle und nicht Erreichbarkeit.
+Dies ist aber allgemein ein Problem von der Ereignisorientierten Entwicklung, wofür es bereits Lösungsansätze gibt.
+
+\subsection{Begrenzte Laufzeitumgebungen}
 Verwendet man nicht einer der populären Programmiersprachen in einer aktuellen Version, wird man bei manchen Anbietern auf Probleme stoßen.
 Wie man OpenFaaS gesehen hat sind Funktionen im Endeffekt Microservices für die der Anbieter ein Template erstellt hat.
-Gibt es kein Template in der gewünschten Sprache und Version hat man oft wenige Möglichkeiten außer diese zu wechseln.
-So bietet zum Beispiel \ac{GCP} nur Java 11 an und \ac{AWS} gar kein PHP.
-% https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html
-% https://cloud.google.com/functions/docs/writing/
+Gibt es kein Template in der gewünschten Sprache und Version hat man oft wenige Möglichkeiten außer auf diese zu wechseln.
+So bietet zum Beispiel \ac{GCP} Java nur in der Version 11 an \cite{gcp_function_runtimes} und \ac{AWS} gar kein PHP\cite{aws_lambda_runtimes}.
+\newline
 \ac{AWS} bietet dafür alternativ einen Möglichkeit an einen eigene Runtime zu entwickeln, ähnlich zu OpenFaaS.
-Dies bringt aber mit sich den ganzen Overhead, den man sich durch \ac{FaaS} eigentlich sparen will.
-\subsection{Komplett Stateless}
-Das ein Service selber keinen Zustand speichern soll ist nichts neues, sondern war schon beim Umstieg von Monolithen auf Microservices eines der großen Anpassungen die man machen musste.
-Bei Microservices hatte man aber trotzdem noch die Möglichkeit diese Empfehlung zu ignorieren, da man selber die Kontrolle hatte über Start und Stopp.
-Mit \ac{FaaS} hat man nicht nur diese Möglichkeit nicht mehr, sondern hat auch effektiv keinen lokalen temporären Speicher mehr.
-Dieser kann sinnvoll als Cache eingesetzt werden wofür jetzt eine Alternative gefunden werden muss, außer man kann mit dem Performanceverlust leben.
+Dies bringt aber mit sich den Entwicklungsoverhead, den man sich durch \ac{FaaS} eigentlich sparen will.
+
+\subsection{Komplett Zustandslos}
+Das ein Service selber keinen Zustand speichern soll ist nichts neues, sondern war schon beim Umstieg von Monolithen auf Microservices, eines der großen Anpassungen, die man machen sollte.
+Bei Microservices hatte man aber trotzdem noch die Möglichkeit diese Empfehlung zu ignorieren, da man selber die Kontrolle hatte über den Start und Stopp des Service.
+Mit \ac{FaaS} hat man nicht nur diese Möglichkeit nicht mehr, sondern hat auch effektiv keinen lokalen temporären Speicher mehr, der als Cache verwendet werden kann.
+
 \subsection{Vendor Lock in}
 Die Gefahr, dass man sich bei der Implementierung zu sehr auf Anbieterspezifische Eigenschaften einlässt ist schon bei anderen Servicemodellen vorhanden, hier aber besonders groß.
-So stellt der Anbieter das Interface für die Funktion zu Verfügung und die entsprechenden Bibliotheken um sehr komfortabel mit weiteren System im Anbieterökosystem zu kommunizieren.
-Dieses Risiko kann aber umgangen werden, indem man die Anbieterspezifischen Details abstrahiert und somit der Kern der Businesslogik beliebig auf andere Portale übertragen werden kann und nur die Anbieterintegration angepasst werden muss.
+So stellt der Anbieter das Interface für die Funktion und die entsprechenden Bibliotheken zur Verfügung, um sehr komfortabel mit weiteren System im Ökosystem des Anbieters zu kommunizieren.
+Dieses Risiko kann aber umgangen werden, indem man die Anbieterspezifischen Details abstrahiert und somit der Kern der Businesslogik beliebig auf andere Portale übertragen werden kann und nur die Integration an den Anbieter anpassen muss.
 Ob dieser Aufwand auf gerechtfertigt ist, ist eine andere Frage.
 Ansonsten hat man auch schon bei OpenFaaS gesehen, dass es alternativen gibt mit Docker und Kubernetes.
 
@@ -226,24 +231,30 @@ Dies verbunden mit dem verringerten Overhead der Serverimplementation und Konfig
 
 \subsection{Broad network access}
 Für die Interaktion mit andere Services innerhalb des Ökosystems des Anbieters gibt es auch Bibliotheken und zahlreiche Ressourcen.
-Für Unternehmen die sich nicht vor dem \emph{Vendor Lock In}, bietet dies eine enorme Zeitersparnis.
+Für Unternehmen die sich nicht vor dem \emph{Vendor Lock In} fürchten, bietet dies eine enorme Zeitersparnis.
 Ansonsten kann man mit den Funktionen über standardisierte HTTP Schnittstellen oder Events kommunizieren.
 
 \subsection{Rapid Elasticity}
-Gegenüber anderen Modellen ist die Skalierung bei \ac{FaaS} schon direkt mitinbegriffen mit sogar der Möglichkeit auf null Instanzen herunterzuskalieren.
-Hierbei kann es noch rapider geschehen durch die leichtegewichtigkeit der Service und der Optimierung hierfür.
+Gegenüber anderen Modellen ist die Skalierung bei \ac{FaaS} schon direkt mit inbegriffen und sogar der Möglichkeit auf Null Instanzen herunter zu skalieren.
+Das Hochskalieren ist leicht schneller durch die Leichtgewichtigkeit der Services und beim herunterskalieren, bezahlt man selber bereits nach dem eintreten der Inaktivität nicht mehr.
 
 \subsection{Measured Services}
-Die verwendeten Resourcen werden viel feingranularer abgerechnet.
+Die verwendeten Ressourcen werden viel feingranularer abgerechnet.
 Vergleicht man AWS Lambda mit AWS EC2 On-Demand, so wird einerseits in Millisekunden statt Sekunden abgerechnet.
 Andererseits kann man bereits mit einer Instanz mit nur 128MB RAM und umgerechnet circa \(\frac{1}{14}\) einer virtuellen CPU starten, statt mit 500MB RAM und einer ganzen virtuellen CPU.
-Also ein rießiger finanzieller Vorteil für Services mit unregelmäßigen oder sehr geringen Lastprofilen oder zum initialen austesten von Prototypen.
+Also ein riesiger finanzieller Vorteil für Services mit unregelmäßigen oder sehr geringen Lastprofilen oder zum initialen austesten von Prototypen.
 
 \subsection{Resource Pooling}
 Die benötige Hardware für die Maximalkapazität braucht man selber auch nicht bereitstellen.
-Dies wird komplett von Anbieter übernommen, welche diese Maximalkapazität für alle Kunden bereitstellen muss.
-Auch der Anbieter kann einen Vorteil hierraus ziehen durch den Skaleneffekt.
-Durch die Masse an benötigter Hardware kann er individuelle Vereinbarung mit Herstellern treffen und auch den physikalischen Standort günstig wählen um von kühleren Klima oder günstigen Strom zu profitieren.
+Dies wird komplett von Anbieter übernommen, welche aber diese Maximalkapazität für alle Kunden bereitstellen muss.
+Trotzdem kann der Anbieter einen Vorteil hieraus ziehen durch den Skaleneffekt.
+Durch die Masse an benötigter Hardware kann er individuelle Vereinbarung mit Herstellern treffen und auch den physikalischen Standort günstig wählen, um von kühleren Klima oder günstigen Strom zu profitieren.
+
+\section{Fazit}
+Insgesamt ist Function as a Service also nur ein weiteres Servicemodell wie die anderen auch mit seinen eigenen Vorteilen auf Kosten gewisser Einschränkungen.
+Diese muss man je Situation gegeneinander abwägen und selber eine Entscheidung treffen ob \ac{FaaS} das richtige Mittel zum Zweck ist.
+Allgemein ist es besser geeignet für kurze Aufgabe, welche sich asynchron abarbeiten lassen und einen unregelmäßiges Lastprofil haben um von der automatischen Skalierung profitieren zu können.
+Es steht einen aber offen mit \ac{FaaS} zu experimentieren, da man nur ein sehr geringes finanzielles Startkapitel benötigt, durch die feingranulare Abrechnung und der extrem niedrigen Funktionsgrößen.
 
 \newpage
 
