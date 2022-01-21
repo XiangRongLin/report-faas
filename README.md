@@ -1,4 +1,4 @@
-Report about "Function as a Service" during winter semester 21/22 at "Hochschule für Technik Stuttgart"
+Report about "Function as a Service" written during winter semester 21/22 at "Hochschule für Technik Stuttgart"
 
 Written in german
 
